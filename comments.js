@@ -1,21 +1,32 @@
 // Create new web server
-const express = require('express');
-const router = express.Router();
-const commentsController = require('../controllers/commentsController');
+var express = require('express');
+var app = express();
+var bodyParser = require('body-parser');
+var fs = require('fs');
+var comments = require('./comments.json');
+var path = require('path');
 
-// Get all comments
-router.get('/', commentsController.getAllComments);
+// Set up body parser
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended:true}));
 
-// Get comment by id
-router.get('/:id', commentsController.getCommentById);
+// Set up server
+app.use(express.static(path.join(__dirname, 'public')));
 
-// Create new comment
-router.post('/', commentsController.createComment);
+// Get comments
+app.get('/comments', function(req, res){
+	res.json(comments);
+});
 
-// Update comment
-router.put('/:id', commentsController.updateComment);
+// Post comments
+app.post('/comments', function(req, res){
+	comments.push(req.body);
+	fs.writeFile('comments.json', JSON.stringify(comments, null, 4), function(err){
+		res.json(comments);
+	});
+});
 
-// Delete comment by id
-router.delete('/:id', commentsController.deleteComment);
-
-module.exports = router;
+// Start server
+app.listen(3000, function(){
+	console.log('Server running on port 3000');
+});
